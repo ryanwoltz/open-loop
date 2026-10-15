@@ -55,8 +55,13 @@ const startHttp = async (store: ReportStore, log: Logger, required: boolean) => 
       ? `Another Open Loop server already serves port ${result.port}; reports land in the same store.`
       : `Port ${result.port} is in use by another program. Set OPEN_LOOP_PORT or --port.`;
   if (required) {
+    // Already running is fine; a stranger on the port is not.
+    if (result.inUseBy === 'open-loop') {
+      log.info(`${msg} Nothing to do — stop that one first to restart it.`);
+      process.exit(0);
+    }
     log.error(msg);
-    process.exit(result.inUseBy === 'open-loop' ? 0 : 1);
+    process.exit(1);
   }
   log.warn(msg);
   return undefined;
