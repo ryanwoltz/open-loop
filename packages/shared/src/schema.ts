@@ -61,6 +61,8 @@ export const ElementInfo = z.object({
   html: z.string().max(4000),
   styles: z.record(z.string().max(300)),
   components: z.array(ComponentFrame).max(25),
+  /** Production build: framework names were minified and dropped; locate code by testId/selector/text. */
+  componentsMinified: z.boolean().optional(),
 });
 export type ElementInfo = z.infer<typeof ElementInfo>;
 

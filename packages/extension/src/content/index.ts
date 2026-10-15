@@ -42,7 +42,8 @@ function main(): void {
   const elements = new Map<string, Element>();
   /** Last known page-coordinate rect, used if an element later leaves the DOM. */
   const lastPageRect = new Map<string, Rect>();
-  const componentCache = new WeakMap<Element, Promise<ComponentFrame[]>>();
+  type Probe = { frames: ComponentFrame[]; minified: boolean };
+  const componentCache = new WeakMap<Element, Promise<Probe>>();
   let restoreTimer: ReturnType<typeof setTimeout> | undefined;
   let lastUrl = location.href;
 
@@ -61,7 +62,7 @@ function main(): void {
     window.postMessage(msg, '*');
   };
 
-  const pendingProbes = new Map<string, (c: ComponentFrame[]) => void>();
+  const pendingProbes = new Map<string, (c: Probe) => void>();
   window.addEventListener('message', (ev: MessageEvent) => {
     if (ev.source !== window || !isBridgeMessage(ev.data, 'up')) return;
     const msg = ev.data as MainToContent;
@@ -71,7 +72,7 @@ function main(): void {
           if (settings) sendConfig();
           return;
         case 'components': {
-          pendingProbes.get(msg.nonce)?.(Array.isArray(msg.components) ? msg.components.slice(0, 25) : []);
+          pendingProbes.get(msg.nonce)?.({ frames: Array.isArray(msg.components) ? msg.components.slice(0, 25) : [], minified: msg.minified === true });
           pendingProbes.delete(msg.nonce);
           return;
         }
@@ -87,19 +88,19 @@ function main(): void {
   });
 
   /** Asks the main world which framework components own an element (≤ 600 ms). */
-  const components = (el: Element): Promise<ComponentFrame[]> => {
+  const components = (el: Element): Promise<Probe> => {
     const cached = componentCache.get(el);
     if (cached) return cached;
-    const p = new Promise<ComponentFrame[]>((resolve) => {
+    const p = new Promise<Probe>((resolve) => {
       const nonce = Math.random().toString(36).slice(2);
       el.setAttribute(PROBE_ATTR, nonce);
-      const done = (c: ComponentFrame[]) => {
+      const done = (c: Probe) => {
         el.removeAttribute(PROBE_ATTR);
         resolve(c);
       };
       pendingProbes.set(nonce, done);
       setTimeout(() => {
-        if (pendingProbes.delete(nonce)) done([]);
+        if (pendingProbes.delete(nonce)) done({ frames: [], minified: false });
       }, 600);
       window.postMessage({ bridge: BRIDGE, dir: 'down', kind: 'probe', nonce } satisfies ContentToMain, '*');
     });
@@ -248,8 +249,8 @@ function main(): void {
     if (pending.kind === 'element' && pending.element) {
       const el = pending.element;
       const info = elementInfo(el);
-      const comps = await components(el);
-      base.element = { ...info, components: comps };
+      const { frames: comps, minified } = await components(el);
+      base.element = { ...info, components: comps, ...(minified ? { componentsMinified: true } : {}) };
       base.label = comps[0] ? `${shortLabel(el)} · ${comps[0].name}` : shortLabel(el);
       elements.set(id, el);
       const r = el.getBoundingClientRect();
@@ -288,7 +289,7 @@ function main(): void {
 
   const overlay = new Overlay({
     rectOf,
-    componentName: async (el) => (await components(el))[0]?.name,
+    componentName: async (el) => (await components(el)).frames[0]?.name,
     create: (pending, comment, category) => {
       createDraft(pending, comment, category).catch((err) => {
         log.error('could not create annotation', err);

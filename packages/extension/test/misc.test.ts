@@ -79,7 +79,7 @@ describe('componentsFor', () => {
       },
     };
     (el as unknown as Record<string, unknown>)['__reactFiber$abc'] = fiber;
-    expect(componentsFor(el)).toEqual([
+    expect(componentsFor(el).frames).toEqual([
       { name: 'PayButton', framework: 'react', source: { file: '/src/PayButton.tsx', line: 12, column: undefined } },
       { name: 'Totals', framework: 'react' },
       { name: 'CheckoutForm', framework: 'react' },
@@ -94,10 +94,33 @@ describe('componentsFor', () => {
       type: { __name: 'CartRow', __file: '/src/CartRow.vue' },
       parent: { type: { name: 'App' }, parent: null },
     };
-    expect(componentsFor(child).map((c) => c.name)).toEqual(['CartRow', 'App']);
+    expect(componentsFor(child).frames.map((c) => c.name)).toEqual(['CartRow', 'App']);
   });
 
   it('returns nothing for plain DOM', () => {
-    expect(componentsFor(document.createElement('div'))).toEqual([]);
+    expect(componentsFor(document.createElement("div"))).toEqual({ frames: [], minified: false });
+  });
+});
+
+import { dropMinified } from '../src/main-world/components';
+
+describe('minified component chains', () => {
+  const f = (name: string) => ({ name, framework: 'react' as const });
+
+  it('drops short names when most of the chain is minified', () => {
+    const chain = ['v2t', 'y2t', 'Ln', 'h2t', 'Sre', 'OrderFormPreview', 'kIt'].map(f);
+    expect(dropMinified(chain)).toEqual({ frames: [f('OrderFormPreview')], minified: true });
+  });
+
+  it('keeps a dev chain with a few short real names', () => {
+    const chain = ['Row', 'CartTable', 'CheckoutPage', 'App'].map(f);
+    expect(dropMinified(chain)).toEqual({ frames: chain, minified: false });
+  });
+
+  it('skips router plumbing seen on a real production page', () => {
+    const el = document.createElement('div');
+    const chain = { type: function Location() {}, return: { type: function Navigation() {}, return: { type: function OrderForm() {}, return: null } } };
+    (el as unknown as Record<string, unknown>)['__reactFiber$x'] = chain;
+    expect(componentsFor(el).frames.map((c) => c.name)).toEqual(['OrderForm']);
   });
 });

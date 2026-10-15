@@ -14,7 +14,7 @@ export type MainToContent =
   | { bridge: typeof BRIDGE; dir: 'up'; kind: 'network'; entry: NetworkEntry }
   | { bridge: typeof BRIDGE; dir: 'up'; kind: 'error'; entry: ErrorEntry }
   | { bridge: typeof BRIDGE; dir: 'up'; kind: 'action'; entry: ActionEntry }
-  | { bridge: typeof BRIDGE; dir: 'up'; kind: 'components'; nonce: string; components: ComponentFrame[] }
+  | { bridge: typeof BRIDGE; dir: 'up'; kind: 'components'; nonce: string; components: ComponentFrame[]; minified?: boolean }
   | { bridge: typeof BRIDGE; dir: 'up'; kind: 'ready' };
 
 export type ContentToMain =

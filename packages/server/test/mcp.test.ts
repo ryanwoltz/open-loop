@@ -98,3 +98,23 @@ describe('MCP server', () => {
     expect(r.activity.at(-1)).toMatchObject({ actor: 'agent', type: 'note', annotationId: 'a1' });
   });
 });
+
+describe('MCP agent guidance', () => {
+  it('warns when a reopened report has no open annotations', async () => {
+    const { store, call } = await connect();
+    const { report } = await store.create(payload());
+    await call('update_report_status', { id: report.id, status: 'resolved' });
+    const r = await call('update_report_status', { id: report.id, status: 'open' });
+    expect(r.content[0]!.text).toContain('Every annotation is still closed');
+  });
+
+  it('tells the agent when component names were minified', async () => {
+    const { store, call } = await connect();
+    const p = payload();
+    p.annotations[0]!.element!.componentsMinified = true;
+    const { report } = await store.create(p);
+    const got = JSON.parse((await call('get_report', { id: report.id })).content[0]!.text!);
+    expect(got.annotations[0].hint).toContain('minified');
+    expect(got.annotations[1].hint).toBeUndefined();
+  });
+});

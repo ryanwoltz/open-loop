@@ -291,14 +291,17 @@ declare global {
       return;
     }
     if (msg.kind === 'probe') {
-      let components: ReturnType<typeof componentsFor> = [];
+      let result: ReturnType<typeof componentsFor> = { frames: [], minified: false };
       try {
         const el = document.querySelector(`[${PROBE_ATTR}="${CSS.escape(msg.nonce)}"]`) ?? findInShadows(msg.nonce);
-        if (el) components = componentsFor(el);
+        if (el) result = componentsFor(el);
       } catch {
         /* report none */
       }
-      window.postMessage({ bridge: BRIDGE, dir: 'up', kind: 'components', nonce: msg.nonce, components } satisfies MainToContent, '*');
+      window.postMessage(
+        { bridge: BRIDGE, dir: 'up', kind: 'components', nonce: msg.nonce, components: result.frames, minified: result.minified } satisfies MainToContent,
+        '*',
+      );
     }
   });
 

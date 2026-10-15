@@ -57,6 +57,9 @@ export const agentView = (store: ReportStore, r: Report, maxLog: number) => {
     annotations: r.annotations.map((a) => ({
       ...a,
       crop: a.crop ? store.filePath(r.id, a.crop) : undefined,
+      ...(a.element?.componentsMinified
+        ? { hint: 'Production build: component names were minified. Find the code by element.testId, selector classes or visible text.' }
+        : {}),
     })),
     files: {
       original: store.filePath(r.id, r.screenshots.original),
@@ -93,7 +96,9 @@ export const createMcpServer = (store: ReportStore, log: Logger): McpServer => {
         mlog.info('tool call', { tool: name });
         return out as ReturnType<typeof text>;
       } catch (err) {
-        mlog.warn('tool call failed', { tool: name, err });
+        // Bad ids and the like are the caller's mistake, not ours: no stack.
+        if (err instanceof StoreError) mlog.info('tool call refused', { tool: name, reason: err.message });
+        else mlog.error('tool call failed', { tool: name, err });
         return failure(err);
       }
     };
@@ -256,7 +261,12 @@ export const createMcpServer = (store: ReportStore, log: Logger): McpServer => {
     },
     guarded('update_report_status', async (a) => {
       const next = await store.update(a.id, { status: a.status, note: a.note }, { actor: 'agent' });
-      return text(`Report ${next.id} is now ${next.status}.`);
+      const open = next.annotations.filter((x) => x.status === 'open' || x.status === 'in_progress').length;
+      const hint =
+        (next.status === 'open' || next.status === 'in_progress') && next.annotations.length > 0 && open === 0
+          ? ' Every annotation is still closed: reopen the ones that need work with update_annotation_status.'
+          : '';
+      return text(`Report ${next.id} is now ${next.status}.${hint}`);
     }),
   );
 

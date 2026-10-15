@@ -31,7 +31,7 @@ const nameOfType = (type: unknown): string | undefined => {
 };
 
 /** Skip framework plumbing that tells an agent nothing about the app. */
-const NOISE = /^(Anonymous|Fragment|Suspense|StrictMode|Profiler|Provider|Consumer|Context|Router|Routes|Route|RenderedRoute|ErrorBoundary|InnerLayoutRouter|OuterLayoutRouter|RedirectBoundary|NotFoundBoundary|LoadingBoundary|ScrollAndFocusHandler|HotReload|AppRouter|ServerRoot|Root)$/;
+const NOISE = /^(Anonymous|Fragment|Suspense|StrictMode|Profiler|Provider|Consumer|Context|Router|Routes|Route|RenderedRoute|ErrorBoundary|InnerLayoutRouter|OuterLayoutRouter|RedirectBoundary|NotFoundBoundary|LoadingBoundary|ScrollAndFocusHandler|HotReload|AppRouter|ServerRoot|Root|Location|Navigation|DataRoutes|RouterProvider|BrowserRouter|Outlet|Await|QueryClientProvider|ThemeProvider)$/;
 
 const react = (el: Element): ComponentFrame[] => {
   const key = Object.keys(el).find((k) => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
@@ -140,18 +140,36 @@ const webComponents = (el: Element): ComponentFrame[] => {
   return frames;
 };
 
-export const componentsFor = (el: Element): ComponentFrame[] => {
+const SHORT = /^[A-Za-z_$][\w$]{0,2}$/;
+
+/**
+ * Production bundles rename components to 1–3 character identifiers (v2t, Ln,
+ * kIt). A chain that is mostly such names is minified: its short names say
+ * nothing about the source, so they are dropped and the result is flagged.
+ */
+export const dropMinified = (frames: ComponentFrame[]): { frames: ComponentFrame[]; minified: boolean } => {
+  const short = frames.filter((f) => SHORT.test(f.name)).length;
+  if (frames.length < 3 || short / frames.length < 0.6) return { frames, minified: false };
+  return { frames: frames.filter((f) => !SHORT.test(f.name)), minified: true };
+};
+
+export interface ComponentResult {
+  frames: ComponentFrame[];
+  minified: boolean;
+}
+
+export const componentsFor = (el: Element): ComponentResult => {
   for (const probe of [react, vue, svelte, angular]) {
     try {
-      const frames = probe(el);
-      if (frames.length > 0) return frames;
+      const raw = probe(el);
+      if (raw.length > 0) return dropMinified(raw);
     } catch {
       /* a framework's internals changed shape: try the next probe */
     }
   }
   try {
-    return webComponents(el);
+    return { frames: webComponents(el), minified: false };
   } catch {
-    return [];
+    return { frames: [], minified: false };
   }
 };
