@@ -39,9 +39,9 @@ const tail = <T>(items: T[], n: number) => ({
 
 /** Re-applies the minified-name filter so reports from older extension builds read cleanly too. */
 const cleanElement = (el: Annotation['element']): Annotation['element'] => {
-  if (!el || el.componentsMinified) return el;
+  if (!el) return el;
   const { frames, minified } = dropMinified(el.components);
-  return minified ? { ...el, components: frames, componentsMinified: true } : el;
+  return { ...el, components: frames, ...(minified || el.componentsMinified ? { componentsMinified: true } : {}) };
 };
 
 /** The report as an agent should read it: logs trimmed, file paths absolute. */

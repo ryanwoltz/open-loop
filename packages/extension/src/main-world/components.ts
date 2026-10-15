@@ -1,5 +1,5 @@
 import type { ComponentFrame } from '@open-loop/shared';
-import { dropMinified } from '@open-loop/shared/core';
+import { NOISE, dropMinified } from '@open-loop/shared/core';
 
 /**
  * Finds the framework component chain that owns a DOM element, nearest first.
@@ -30,9 +30,6 @@ const nameOfType = (type: unknown): string | undefined => {
   }
   return undefined;
 };
-
-/** Skip framework plumbing that tells an agent nothing about the app. */
-const NOISE = /^(Anonymous|Fragment|Suspense|StrictMode|Profiler|Provider|Consumer|Context|Router|Routes|Route|RenderedRoute|ErrorBoundary|InnerLayoutRouter|OuterLayoutRouter|RedirectBoundary|NotFoundBoundary|LoadingBoundary|ScrollAndFocusHandler|HotReload|AppRouter|ServerRoot|Root|Location|Navigation|DataRoutes|RouterProvider|BrowserRouter|Outlet|Await|QueryClientProvider|ThemeProvider)$/;
 
 const react = (el: Element): ComponentFrame[] => {
   const key = Object.keys(el).find((k) => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));

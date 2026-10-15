@@ -59,6 +59,10 @@ const SHORT = /^[A-Za-z_$][\w$]{0,2}$/;
  */
 export const dropMinified = (frames: ComponentFrame[]): { frames: ComponentFrame[]; minified: boolean } => {
   const short = frames.filter((f) => SHORT.test(f.name)).length;
+  frames = frames.filter((f) => f.framework !== 'react' || !NOISE.test(f.name));
   if (frames.length < 3 || short / frames.length < 0.6) return { frames, minified: false };
   return { frames: frames.filter((f) => !SHORT.test(f.name)), minified: true };
 };
+
+/** Skip framework plumbing that tells an agent nothing about the app. */
+export const NOISE = /^(Anonymous|Fragment|Suspense|StrictMode|Profiler|Provider|Consumer|Context|Router|Routes|Route|RenderedRoute|ErrorBoundary|InnerLayoutRouter|OuterLayoutRouter|RedirectBoundary|NotFoundBoundary|LoadingBoundary|ScrollAndFocusHandler|HotReload|AppRouter|ServerRoot|Root|Location|Navigation|DataRoutes|RouterProvider|BrowserRouter|Outlet|Await|QueryClientProvider|ThemeProvider)$/;
