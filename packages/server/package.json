@@ -1,0 +1,24 @@
+{
+  "name": "@open-loop/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Open Loop local store, HTTP API for the extension, and MCP server for coding agents.",
+  "bin": {
+    "open-loop": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@open-loop/shared": "workspace:*",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10",
+    "vitest": "^3.2.4"
+  }
+}

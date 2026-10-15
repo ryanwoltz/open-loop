@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture Checkout</title>
+    <style>
+      body { font: 16px system-ui, sans-serif; margin: 0; background: #f6f6f8; }
+      header { padding: 24px 32px; background: #1f2937; color: #fff; }
+      main { padding: 32px; display: grid; gap: 16px; max-width: 720px; }
+      .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+      #pay { background: #2563eb; color: #fff; border: 0; padding: 12px 20px; border-radius: 8px; font-size: 16px; }
+      .total { font-size: 28px; font-weight: 700; }
+      .spacer { height: 1400px; }
+    </style>
+  </head>
+  <body>
+    <header><h1>Acme Checkout</h1></header>
+    <main>
+      <section class="card">
+        <div class="total">Total: $42.00</div>
+        <p>Thanks for shopping. Your order ships tomorrow.</p>
+        <button id="pay" data-testid="pay-button">Pay now</button>
+        <button id="fail">Trigger failure</button>
+        <input id="card" type="password" placeholder="Card" />
+      </section>
+      <section class="card" id="empty-area" style="height: 160px">Empty area for drawing</section>
+      <div class="spacer"></div>
+    </main>
+    <script>
+      // A stand-in for React: the extension reads the fiber React attaches to DOM nodes.
+      function PayButton() {}
+      function CheckoutPage() {}
+      document.getElementById('pay')['__reactFiber$fixture'] = {
+        type: 'button',
+        return: { type: PayButton, _debugSource: { fileName: '/src/PayButton.tsx', lineNumber: 12, columnNumber: 3 }, return: { type: CheckoutPage, return: null } },
+      };
+      console.log('fixture booted', { cart: 3 });
+      document.getElementById('fail').addEventListener('click', async () => {
+        console.error('Payment failed', new Error('card_declined'));
+        await fetch('/api/pay?token=secret123', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ amount: 42, password: 'hunter2' }),
+        });
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/cart');
+        xhr.send();
+        setTimeout(() => {
+          throw new Error('Uncaught checkout crash');
+        }, 0);
+      });
+    </script>
+  </body>
+</html>
