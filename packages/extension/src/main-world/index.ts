@@ -166,6 +166,7 @@ declare global {
               ...(reqType ? { requestContentType: truncate(reqType, 200) } : {}),
               ...(failedBodies && reqBody ? { requestBody: redactBody(reqBody, BODY_MAX) } : {}),
               error: aborted ? 'Aborted' : truncate(err instanceof Error ? err.message : String(err), 1000),
+              ...(aborted ? { aborted: true } : {}),
             },
           });
         }
@@ -229,6 +230,8 @@ declare global {
       meta.startedAt = Date.now();
       meta.t0 = performance.now();
       meta.body = bodyText(body);
+      let aborted = false;
+      this.addEventListener('abort', () => (aborted = true));
       this.addEventListener('loadend', () => {
         try {
           const ok = this.status >= 200 && this.status < 400;
@@ -244,8 +247,11 @@ declare global {
             ...(this.statusText ? { statusText: truncate(this.statusText, 200) } : {}),
             ...(resType ? { responseContentType: truncate(resType, 200) } : {}),
           };
-          if (this.status === 0) entry.error = 'Network error, CORS failure or aborted';
-          if (!ok && failedBodies) {
+          if (aborted) {
+            entry.error = 'Aborted';
+            entry.aborted = true;
+          } else if (this.status === 0) entry.error = 'Network error or CORS failure';
+          if (!ok && !aborted && failedBodies) {
             if (meta.body) entry.requestBody = redactBody(meta.body, BODY_MAX);
             if ((this.responseType === '' || this.responseType === 'text') && isTextual(resType) && this.responseText) {
               entry.responseBody = redactBody(this.responseText, BODY_MAX);

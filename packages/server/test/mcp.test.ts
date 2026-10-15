@@ -127,4 +127,16 @@ describe('MCP agent guidance', () => {
     expect(got.annotations[0].element.components.map((c: { name: string }) => c.name)).toEqual(['OrderFormPreview']);
     expect(got.annotations[0].hint).toContain('minified');
   });
+
+  it('does not count page-cancelled requests as failures', async () => {
+    const { store, call } = await connect();
+    const p = payload();
+    p.network.push({ method: 'GET', url: 'https://cdn.example.com/basemap.pmtiles', status: 0, ok: false, initiator: 'fetch', startedAt: 3, durationMs: 5, error: 'Aborted' });
+    const { report } = await store.create(p);
+    const got = JSON.parse((await call('get_report', { id: report.id })).content[0]!.text!);
+    expect(got.logs.totals).toMatchObject({ failedRequests: 1, abortedRequests: 1 });
+    const failed = JSON.parse((await call('get_logs', { id: report.id, kind: 'network', failed_only: true })).content[0]!.text!);
+    expect(failed.total).toBe(1);
+    expect(JSON.parse((await call('list_reports')).content[0]!.text!).reports[0].failedRequestCount).toBe(1);
+  });
 });

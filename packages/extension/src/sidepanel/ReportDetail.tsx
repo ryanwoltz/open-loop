@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ANNOTATION_STATUSES, REPORT_STATUSES, type Annotation, type AnnotationStatus, type Report, type ReportStatus } from '@open-loop/shared';
+import { isFailedRequest } from '@open-loop/shared/core';
 import { errorMessage } from '../lib/logger';
 import { CATEGORY_META, PRIORITY_META, STATUS_META } from '../lib/ui';
 import { agentPrompt, clockTime, relativeTime } from './format';
@@ -299,8 +300,8 @@ const LogPane = ({ report, tab }: { report: Report; tab: LogTab }) => {
     return (
       <ul className="logs">
         {report.network.map((n, i) => (
-          <li key={i} className={`log ${n.ok ? '' : 'log-error'}`} title={n.responseBody ?? n.error ?? ''}>
-            <span className="log-status">{n.status || 'ERR'}</span>
+          <li key={i} className={`log ${isFailedRequest(n) ? 'log-error' : ''} ${!n.ok && !isFailedRequest(n) ? 'log-muted' : ''}`} title={n.responseBody ?? n.error ?? ''}>
+            <span className="log-status">{n.status || (isFailedRequest(n) ? 'ERR' : 'ABRT')}</span>
             <span className="log-msg">
               <b>{n.method}</b> {n.url}
             </span>

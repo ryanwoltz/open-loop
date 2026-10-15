@@ -1,6 +1,6 @@
 /** Dependency-free helpers safe to bundle into page scripts (no zod). */
 
-import type { ComponentFrame } from './schema';
+import type { ComponentFrame, NetworkEntry } from './schema';
 
 export const DEFAULT_PORT = 7865;
 export const DEFAULT_SERVER_URL = `http://127.0.0.1:${DEFAULT_PORT}`;
@@ -66,3 +66,10 @@ export const dropMinified = (frames: ComponentFrame[]): { frames: ComponentFrame
 
 /** Skip framework plumbing that tells an agent nothing about the app. */
 export const NOISE = /^(Anonymous|Fragment|Suspense|StrictMode|Profiler|Provider|Consumer|Context|Router|Routes|Route|RenderedRoute|ErrorBoundary|InnerLayoutRouter|OuterLayoutRouter|RedirectBoundary|NotFoundBoundary|LoadingBoundary|ScrollAndFocusHandler|HotReload|AppRouter|ServerRoot|Root|Location|Navigation|DataRoutes|RouterProvider|BrowserRouter|Outlet|Await|QueryClientProvider|ThemeProvider)$/;
+
+/**
+ * A request that went wrong. Requests the page cancelled itself (map tiles,
+ * superseded searches) are not failures; older reports mark them only by error.
+ */
+export const isFailedRequest = (n: Pick<NetworkEntry, 'ok' | 'aborted' | 'error'>): boolean =>
+  !n.ok && !n.aborted && n.error !== 'Aborted';

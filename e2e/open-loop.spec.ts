@@ -193,6 +193,7 @@ test('annotate, capture and save a report with full context', async () => {
   expect(payReq.responseBody).toContain('"sessionToken":"REDACTED"');
   expect(report.network.find((n: any) => n.url.includes('/api/cart'))).toMatchObject({ status: 404, initiator: 'xhr', responseBody: 'no cart' });
   expect(report.errors.some((e: any) => e.message.includes('Uncaught checkout crash'))).toBe(true);
+  expect(report.network.find((n: any) => n.url.includes('/api/tiles'))).toMatchObject({ ok: false, aborted: true, error: 'Aborted' });
   expect(report.actions.some((a: any) => a.type === 'click' && a.target === '#fail')).toBe(true);
   expect(report.actions.some((a: any) => a.type === 'input' && a.detail === 'typed a password')).toBe(true);
   expect(JSON.stringify(report)).not.toContain('4242424242424242');

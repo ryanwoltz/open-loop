@@ -48,6 +48,9 @@
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ amount: 42, password: 'hunter2' }),
         });
+        const ctl = new AbortController();
+        fetch('/api/tiles', { signal: ctl.signal }).catch(() => {});
+        ctl.abort();
         const xhr = new XMLHttpRequest();
         xhr.open('GET', '/api/cart');
         xhr.send();

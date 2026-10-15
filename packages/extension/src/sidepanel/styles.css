@@ -274,6 +274,7 @@ span.pin { cursor: default; }
 .log-warn { background: color-mix(in srgb, var(--amber-soft) 70%, transparent); }
 .log-error { background: color-mix(in srgb, var(--red-soft) 70%, transparent); }
 .log-error .log-status { color: var(--red); }
+.log-muted { color: var(--muted); }
 .log-count { margin-left: 6px; padding: 0 5px; border-radius: 99px; background: var(--surface-3); color: var(--text-2); font-size: 10.5px; }
 
 .kv { margin: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }

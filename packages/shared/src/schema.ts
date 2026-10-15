@@ -120,6 +120,8 @@ export const NetworkEntry = z.object({
   /** Response body, truncated; only captured for failed requests. */
   responseBody: z.string().max(4000).optional(),
   error: z.string().max(1000).optional(),
+  /** Cancelled by the page itself (AbortController): not a failure. */
+  aborted: z.boolean().optional(),
 });
 export type NetworkEntry = z.infer<typeof NetworkEntry>;
 

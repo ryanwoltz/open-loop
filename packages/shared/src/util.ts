@@ -1,5 +1,6 @@
 import type { Report, ReportSummary } from './schema';
 import { isClosedStatus } from './schema';
+import { isFailedRequest } from './core';
 
 export * from './core';
 
@@ -16,7 +17,7 @@ export const toSummary = (r: Report): ReportSummary => ({
   annotationCount: r.annotations.length,
   closedAnnotationCount: r.annotations.filter((a) => isClosedStatus(a.status)).length,
   errorCount: r.errors.length + r.console.filter((c) => c.level === 'error').length,
-  failedRequestCount: r.network.filter((n) => !n.ok).length,
+  failedRequestCount: r.network.filter(isFailedRequest).length,
 });
 
 export const REPORT_ID_RE = /^ol-[0-9]{8}-[a-z0-9]{6}$/;

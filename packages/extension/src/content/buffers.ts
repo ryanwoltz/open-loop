@@ -1,4 +1,5 @@
 import type { ActionEntry, ConsoleEntry, ErrorEntry, NetworkEntry } from '@open-loop/shared';
+import { isFailedRequest } from '@open-loop/shared/core';
 
 /** Fixed-size FIFO: the oldest entry drops when full. */
 export class Ring<T> {
@@ -69,7 +70,7 @@ export class CaptureBuffers {
       console: consoleEntries.length,
       consoleErrors: consoleEntries.filter((c) => c.level === 'error').length,
       network: net.length,
-      failedRequests: net.filter((n) => !n.ok).length,
+      failedRequests: net.filter(isFailedRequest).length,
       errors: this.errors.size,
       actions: this.actions.size,
     };

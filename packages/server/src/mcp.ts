@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { ANNOTATION_STATUSES, REPORT_STATUSES, dropMinified, type Annotation, type Report } from '@open-loop/shared';
+import { ANNOTATION_STATUSES, REPORT_STATUSES, dropMinified, isFailedRequest, type Annotation, type Report } from '@open-loop/shared';
 import { mimeFor, type ReportStore, StoreError } from './store';
 import type { Logger } from './logger';
 import { VERSION } from './version';
@@ -46,7 +46,8 @@ const cleanElement = (el: Annotation['element']): Annotation['element'] => {
 
 /** The report as an agent should read it: logs trimmed, file paths absolute. */
 export const agentView = (store: ReportStore, r: Report, maxLog: number) => {
-  const failedNetwork = r.network.filter((n) => !n.ok);
+  const failedNetwork = r.network.filter(isFailedRequest);
+  const abortedCount = r.network.filter((n) => !n.ok && !isFailedRequest(n)).length;
   const errorsAndWarnings = r.console.filter((c) => c.level === 'error' || c.level === 'warn');
   return {
     id: r.id,
@@ -87,6 +88,7 @@ export const agentView = (store: ReportStore, r: Report, maxLog: number) => {
         console: r.console.length,
         network: r.network.length,
         failedRequests: failedNetwork.length,
+        abortedRequests: abortedCount,
         errors: r.errors.length,
         actions: r.actions.length,
       },
@@ -214,7 +216,7 @@ export const createMcpServer = (store: ReportStore, log: Logger): McpServer => {
         id: z.string(),
         kind: z.enum(['console', 'network', 'errors', 'actions']),
         level: z.enum(['log', 'info', 'warn', 'error', 'debug']).optional().describe('console only'),
-        failed_only: z.boolean().optional().describe('network only'),
+        failed_only: z.boolean().optional().describe('network only; excludes requests the page cancelled itself'),
         contains: z.string().optional().describe('Case-insensitive substring filter'),
         limit: z.number().int().min(1).max(2000).optional(),
       },
@@ -224,7 +226,7 @@ export const createMcpServer = (store: ReportStore, log: Logger): McpServer => {
       const r = await store.get(a.id);
       let rows: unknown[] = r[a.kind];
       if (a.kind === 'console' && a.level) rows = r.console.filter((c) => c.level === a.level);
-      if (a.kind === 'network' && a.failed_only) rows = r.network.filter((n) => !n.ok);
+      if (a.kind === 'network' && a.failed_only) rows = r.network.filter(isFailedRequest);
       if (a.contains) {
         const needle = a.contains.toLowerCase();
         rows = rows.filter((row) => JSON.stringify(row).toLowerCase().includes(needle));

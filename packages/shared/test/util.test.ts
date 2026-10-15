@@ -67,3 +67,14 @@ describe('redactBody', () => {
     expect(redactBody('x'.repeat(50), 10)).toHaveLength(10);
   });
 });
+
+import { isFailedRequest } from '../src/core';
+
+describe('isFailedRequest', () => {
+  it('counts errors but not page-cancelled requests', () => {
+    expect(isFailedRequest({ ok: false })).toBe(true);
+    expect(isFailedRequest({ ok: false, aborted: true })).toBe(false);
+    expect(isFailedRequest({ ok: false, error: 'Aborted' })).toBe(false); // reports from before the flag
+    expect(isFailedRequest({ ok: true })).toBe(false);
+  });
+});
