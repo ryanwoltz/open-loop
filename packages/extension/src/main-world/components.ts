@@ -1,4 +1,5 @@
 import type { ComponentFrame } from '@open-loop/shared';
+import { dropMinified } from '@open-loop/shared/core';
 
 /**
  * Finds the framework component chain that owns a DOM element, nearest first.
@@ -138,19 +139,6 @@ const webComponents = (el: Element): ComponentFrame[] => {
     if (node instanceof ShadowRoot) node = node.host;
   }
   return frames;
-};
-
-const SHORT = /^[A-Za-z_$][\w$]{0,2}$/;
-
-/**
- * Production bundles rename components to 1–3 character identifiers (v2t, Ln,
- * kIt). A chain that is mostly such names is minified: its short names say
- * nothing about the source, so they are dropped and the result is flagged.
- */
-export const dropMinified = (frames: ComponentFrame[]): { frames: ComponentFrame[]; minified: boolean } => {
-  const short = frames.filter((f) => SHORT.test(f.name)).length;
-  if (frames.length < 3 || short / frames.length < 0.6) return { frames, minified: false };
-  return { frames: frames.filter((f) => !SHORT.test(f.name)), minified: true };
 };
 
 export interface ComponentResult {

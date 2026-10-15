@@ -117,4 +117,14 @@ describe('MCP agent guidance', () => {
     expect(got.annotations[0].hint).toContain('minified');
     expect(got.annotations[1].hint).toBeUndefined();
   });
+
+  it('cleans minified chains stored by older extension builds', async () => {
+    const { store, call } = await connect();
+    const p = payload();
+    p.annotations[0]!.element!.components = ['v2t', 'y2t', 'Ln', 'OrderFormPreview', 'Sre'].map((name) => ({ name, framework: 'react' as const }));
+    const { report } = await store.create(p);
+    const got = JSON.parse((await call('get_report', { id: report.id })).content[0]!.text!);
+    expect(got.annotations[0].element.components.map((c: { name: string }) => c.name)).toEqual(['OrderFormPreview']);
+    expect(got.annotations[0].hint).toContain('minified');
+  });
 });

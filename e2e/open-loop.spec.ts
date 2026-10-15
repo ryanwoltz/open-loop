@@ -139,6 +139,13 @@ test('annotate, capture and save a report with full context', async () => {
   await page.keyboard.press('Meta+Enter');
   await expect(shadow(page).locator('.mark .pin')).toHaveText(['1', '2']);
 
+  // Production-style minified chain: short names dropped, flagged.
+  const total = await page.locator('.total').boundingBox();
+  await page.mouse.click(total!.x + 5, total!.y + 5);
+  await shadow(page).locator('.ed-text').fill('Total is too big');
+  await shadow(page).locator('.primary.ok').click();
+  await expect(shadow(page).locator('.mark .pin')).toHaveText(['1', '2', '3']);
+
   await page.mouse.move(pay!.x + 10, pay!.y + 10);
   await shot(page, '2-annotating');
   await panel.setViewportSize({ width: 400, height: 900 });
@@ -147,7 +154,7 @@ test('annotate, capture and save a report with full context', async () => {
   await panel.setViewportSize({ width: 1280, height: 800 });
   await page.bringToFront();
   const state = await bg<{ drafts: Array<{ label: string; element?: { components: Array<{ name: string }> } }>; counts: { actions: number } }>({ type: 'getTabState', tabId });
-  expect(state.drafts).toHaveLength(2);
+  expect(state.drafts).toHaveLength(3);
   expect(state.drafts[0]!.label).toContain('PayButton');
   expect(state.counts.actions).toBe(actionsBefore);
 
@@ -172,6 +179,9 @@ test('annotate, capture and save a report with full context', async () => {
   });
   expect(report.annotations[1]).toMatchObject({ index: 2, kind: 'region', comment: 'Too much empty space' });
   expect(report.annotations[0].crop).toBe('crops/annotation-1.png');
+  expect(report.annotations[0].element.componentsMinified).toBeUndefined();
+  expect(report.annotations[2].element.components.map((c: any) => c.name)).toEqual(['TotalsCard']);
+  expect(report.annotations[2].element.componentsMinified).toBe(true);
 
   // Logs.
   expect(report.console.some((c: any) => c.level === 'error' && c.message.includes('Payment failed'))).toBe(true);
@@ -221,7 +231,7 @@ test('side panel shows the report and reflects an agent resolving it', async () 
   await panel.getByRole('button', { name: 'All', exact: true }).click();
   await expect(panel.locator('.report-row')).toHaveCount(1);
   await expect(panel.locator('.report-row .badge').first()).toHaveText('Resolved');
-  await expect(panel.locator('.progress small')).toHaveText('2/2');
+  await expect(panel.locator('.progress small')).toHaveText('3/3');
   await shot(panel, '4-panel-issues');
   await panel.locator('.report-row').click();
   await expect(panel.locator('.detail-title')).toHaveText('Pay button should be green');

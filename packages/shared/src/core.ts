@@ -1,5 +1,7 @@
 /** Dependency-free helpers safe to bundle into page scripts (no zod). */
 
+import type { ComponentFrame } from './schema';
+
 export const DEFAULT_PORT = 7865;
 export const DEFAULT_SERVER_URL = `http://127.0.0.1:${DEFAULT_PORT}`;
 
@@ -46,4 +48,17 @@ export const deriveTitle = (comments: string[], pageTitle: string): string => {
   const first = comments.map((c) => c.trim()).find((c) => c.length > 0);
   const base = first ?? (pageTitle.trim() || 'Untitled report');
   return truncate(base.replace(/\s+/g, ' '), 120);
+};
+
+const SHORT = /^[A-Za-z_$][\w$]{0,2}$/;
+
+/**
+ * Production bundles rename components to 1–3 character identifiers (v2t, Ln,
+ * kIt). A chain that is mostly such names is minified: its short names say
+ * nothing about the source, so they are dropped and the result is flagged.
+ */
+export const dropMinified = (frames: ComponentFrame[]): { frames: ComponentFrame[]; minified: boolean } => {
+  const short = frames.filter((f) => SHORT.test(f.name)).length;
+  if (frames.length < 3 || short / frames.length < 0.6) return { frames, minified: false };
+  return { frames: frames.filter((f) => !SHORT.test(f.name)), minified: true };
 };

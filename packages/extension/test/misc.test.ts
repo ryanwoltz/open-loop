@@ -102,7 +102,7 @@ describe('componentsFor', () => {
   });
 });
 
-import { dropMinified } from '../src/main-world/components';
+import { dropMinified } from '@open-loop/shared/core';
 
 describe('minified component chains', () => {
   const f = (name: string) => ({ name, framework: 'react' as const });

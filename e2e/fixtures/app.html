@@ -34,6 +34,12 @@
         type: 'button',
         return: { type: PayButton, _debugSource: { fileName: '/src/PayButton.tsx', lineNumber: 12, columnNumber: 3 }, return: { type: CheckoutPage, return: null } },
       };
+      // A production bundle: minified component names around the total.
+      const min = (n) => Object.defineProperty(function () {}, 'name', { value: n });
+      document.querySelector('.total')['__reactFiber$fixture'] = {
+        type: 'div',
+        return: { type: min('v2t'), return: { type: min('Ln'), return: { type: min('kIt'), return: { type: min('TotalsCard'), return: { type: min('Sre'), return: null } } } } },
+      };
       console.log('fixture booted', { cart: 3 });
       document.getElementById('fail').addEventListener('click', async () => {
         console.error('Payment failed', new Error('card_declined'));

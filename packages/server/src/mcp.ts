@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { ANNOTATION_STATUSES, REPORT_STATUSES, type Report } from '@open-loop/shared';
+import { ANNOTATION_STATUSES, REPORT_STATUSES, dropMinified, type Annotation, type Report } from '@open-loop/shared';
 import { mimeFor, type ReportStore, StoreError } from './store';
 import type { Logger } from './logger';
 import { VERSION } from './version';
@@ -37,6 +37,13 @@ const tail = <T>(items: T[], n: number) => ({
   omitted: Math.max(0, items.length - n),
 });
 
+/** Re-applies the minified-name filter so reports from older extension builds read cleanly too. */
+const cleanElement = (el: Annotation['element']): Annotation['element'] => {
+  if (!el || el.componentsMinified) return el;
+  const { frames, minified } = dropMinified(el.components);
+  return minified ? { ...el, components: frames, componentsMinified: true } : el;
+};
+
 /** The report as an agent should read it: logs trimmed, file paths absolute. */
 export const agentView = (store: ReportStore, r: Report, maxLog: number) => {
   const failedNetwork = r.network.filter((n) => !n.ok);
@@ -54,13 +61,17 @@ export const agentView = (store: ReportStore, r: Report, maxLog: number) => {
     viewport: r.viewport,
     device: r.device,
     performance: r.performance,
-    annotations: r.annotations.map((a) => ({
-      ...a,
-      crop: a.crop ? store.filePath(r.id, a.crop) : undefined,
-      ...(a.element?.componentsMinified
-        ? { hint: 'Production build: component names were minified. Find the code by element.testId, selector classes or visible text.' }
-        : {}),
-    })),
+    annotations: r.annotations.map((a) => {
+      const element = cleanElement(a.element);
+      return {
+        ...a,
+        ...(element ? { element } : {}),
+        crop: a.crop ? store.filePath(r.id, a.crop) : undefined,
+        ...(element?.componentsMinified
+          ? { hint: 'Production build: component names were minified. Find the code by element.testId, selector classes or visible text.' }
+          : {}),
+      };
+    }),
     files: {
       original: store.filePath(r.id, r.screenshots.original),
       annotated: store.filePath(r.id, r.screenshots.annotated),
