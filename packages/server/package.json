@@ -2,6 +2,7 @@
   "name": "@open-loop/server",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "description": "Open Loop local store, HTTP API for the extension, and MCP server for coding agents.",
   "bin": {

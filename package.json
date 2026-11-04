@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "description": "Mark up any web page, capture rich bug context, and hand it to an AI coding agent over MCP.",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "author": "Ryan Woltz",
   "homepage": "https://github.com/ryanwoltz/open-loop#readme",
   "repository": {

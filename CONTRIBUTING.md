@@ -37,6 +37,6 @@ CI runs all three on every pull request.
 - If you touch what gets captured (logs, network bodies, element HTML), make sure redaction still covers it. See `packages/shared/src/redact.ts`.
 - Update the README if you change install steps, MCP tools, CLI flags or environment variables.
 
-## License
+## Contributor License Agreement
 
-By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).
+Open Loop is dual-licensed under the [AGPL-3.0](LICENSE) and a [commercial license](COMMERCIAL-LICENSE.md). Before your first pull request can be merged, please agree to the [Contributor License Agreement](CLA.md) by ticking the box in the pull request template. You keep the copyright to your work; the agreement lets the project offer your contributions under both licenses.

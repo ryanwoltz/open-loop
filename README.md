@@ -5,7 +5,8 @@
 Open Loop is a Chrome extension and a local [MCP](https://modelcontextprotocol.io) server. You click on what's wrong, type a comment, and save. Your coding agent (Claude Code, Cursor, or any MCP client) then reads the report — screenshots, the exact DOM element, the framework component and source file behind it, console errors, failed network requests — fixes the code, and marks each issue resolved. You watch it happen in the extension's side panel.
 
 [![ci](https://github.com/ryanwoltz/open-loop/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanwoltz/open-loop/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![Commercial license available](https://img.shields.io/badge/commercial%20license-available-green.svg)](COMMERCIAL-LICENSE.md)
 
 ---
 
@@ -218,8 +219,13 @@ The first e2e run needs a browser: `pnpm exec playwright install chromium`.
 
 ## Contributing
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to set up, test and submit changes.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to set up, test and submit changes. Contributors sign a short [Contributor License Agreement](CLA.md) in their first pull request.
 
 ## License
 
-[MIT](LICENSE) © Ryan Woltz
+Copyright © 2026 Ryan Woltz. Open Loop is dual-licensed:
+
+- **[AGPL-3.0](LICENSE)** — free to use, modify and share. If you distribute a modified version or run one as a network service, you must release your full source code under the AGPL-3.0 too.
+- **[Commercial license](COMMERCIAL-LICENSE.md)** — for building Open Loop into a closed-source product or service, or using its code without the AGPL's obligations.
+
+Using Open Loop as a tool to report bugs in your own apps, personally or at work, doesn't require a commercial license, and your apps aren't affected by Open Loop's license.
