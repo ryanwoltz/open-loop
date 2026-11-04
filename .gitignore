@@ -6,3 +6,7 @@ test-results/
 playwright-report/
 .tmp/
 *.zip
+.env
+.env.*
+.claude/
+coverage/

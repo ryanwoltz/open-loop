@@ -4,6 +4,25 @@
   "version": "0.1.0",
   "description": "Mark up any web page, capture rich bug context, and hand it to an AI coding agent over MCP.",
   "license": "MIT",
+  "author": "Ryan Woltz",
+  "homepage": "https://github.com/ryanwoltz/open-loop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanwoltz/open-loop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ryanwoltz/open-loop/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "chrome-extension",
+    "bug-report",
+    "annotation",
+    "claude-code",
+    "ai-agent",
+    "devtools"
+  ],
   "packageManager": "pnpm@11.4.0",
   "engines": {
     "node": ">=20"
